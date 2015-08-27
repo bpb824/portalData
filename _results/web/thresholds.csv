@@ -1,0 +1,7 @@
+Condition,Threshold,Tolerance within Sample
+Count (volume),>17 vehicles ,1%
+Occupancy,>95%,5%
+High Speed,>100 MPH,5%
+Low Speed,< 5 MPH,30%
+Low Max Occupancy,Max Occupancy = 0,0%
+Low Average Occupancy,Average Occupancy <4%,0%
