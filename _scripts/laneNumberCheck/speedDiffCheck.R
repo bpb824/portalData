@@ -98,15 +98,15 @@ stationCheck$flag=FALSE
 stationCheck$flag[stationCheck$pDiff_10 <0]=TRUE
 stationCheckFinal=stationCheck[!duplicated(stationCheck$stationid),]
 
-saveRDS(stationCheckFinal,"laneNumberCheck.rds")
+saveRDS(stationCheckFinal,"_data/freeway/laneNumberCheck/laneNumberCheck.rds")
 
-if(i == nrow(stationCheck)){
-  sendmail("bblanc@pdx.edu",subject="Finished speed calculation for lanes",message="You're awesome!", password="rmail")
-}
+#if(i == nrow(stationCheck)){
+#  sendmail("bblanc@pdx.edu",subject="Finished speed calculation for lanes",message="You're awesome!", password="rmail")
+#}
 
 
 # Plotting ----------------------------------------------------------------
-laneCheck = readRDS("laneNumberCheck.rds")
+laneCheck = readRDS("_data/freeway/laneNumberCheck/laneNumberCheck.rds")
 laneCheck$flag=FALSE
 laneCheck$flag[laneCheck$pDiff_10 <0]=TRUE
 laneFrame = laneCheck[complete.cases(laneCheck),]
@@ -118,10 +118,12 @@ laneFrame$out[(laneFrame$pDiff_10 <fences[2] & laneFrame$pDiff_10 >= fences[1])|
 laneFrame$out[(laneFrame$pDiff_10 <fences[1])|(laneFrame$pDiff_10 >fences[4])]="Major"
 laneFrame$out=factor(laneFrame$out,ordered = TRUE)
 
-stationsShp = readOGR(dsn="/Users/bblanc/OneDrive/_ODOT/_Portal/_gisData",layer ="stations")
-#stationsShp = readOGR(dsn="~/_ODOT_Portal/investigations",layer ="stations")
-stationsLoc=stationsShp@data
+
+stationsLoc=read.csv("_data/GIS/orStationsLoc.csv")
 flagged = subset(laneFrame,laneFrame$out == "Minor" | laneFrame$out =="Major" )
+
+startTime = "2015-06-01"
+endTime = "2015-06-30"
 
 theme_set(theme_grey(base_size=50))
 
@@ -170,26 +172,24 @@ for (i in 1:length(flagged$stationid)){
        print(paste0("plotted for station #",i," of ",nrow(flagged)))
 }
 
-stationsLoc = stationsLoc[!duplicated(stationsLoc$stationid),]
-
 map= leaflet() %>% addProviderTiles("Stamen.TonerLite", options = providerTileOptions(noWrap = TRUE)) %>% setView(-122.6662589, 45.5317385, zoom = 10)
 for(i in 1:nrow(flagged)){
          sid = flagged$stationid[i]
          plot_url = paste0("http://bigtransportdata.com/_portal/laneNumbers/plots/",sid,".png")
          flagged$html[i] = paste0("<div align='center'><a href='",plot_url,"' target='_blank'><img src='",plot_url,"' alt='VolumePlot' height='200' width='300'></a></div>")
          if(sid >= 5000){
-           if(length(stationsLoc$lat[stationsLoc$stationid==sid-4000]==1)){
-             flagged$lat[i]=stationsLoc$lat[stationsLoc$stationid==sid-4000]
+           if(length(stationsLoc$Y[stationsLoc$stationid==sid-4000]==1)){
+             flagged$lat[i]=stationsLoc$Y[stationsLoc$stationid==sid-4000]
            }
-           if(length(stationsLoc$lng[stationsLoc$stationid==sid-4000])==1){
-             flagged$lng[i]=stationsLoc$lng[stationsLoc$stationid==sid-4000]
+           if(length(stationsLoc$X[stationsLoc$stationid==sid-4000])==1){
+             flagged$lng[i]=stationsLoc$X[stationsLoc$stationid==sid-4000]
            }
          }else{
-           if(length(stationsLoc$lat[stationsLoc$stationid==sid]==1)){
-             flagged$lat[i]=stationsLoc$lat[stationsLoc$stationid==sid]
+           if(length(stationsLoc$Y[stationsLoc$stationid==sid]==1)){
+             flagged$lat[i]=stationsLoc$Y[stationsLoc$stationid==sid]
            }
-           if(length(stationsLoc$lng[stationsLoc$stationid==sid])==1){
-             flagged$lng[i]=stationsLoc$lng[stationsLoc$stationid==sid]
+           if(length(stationsLoc$X[stationsLoc$stationid==sid])==1){
+             flagged$lng[i]=stationsLoc$X[stationsLoc$stationid==sid]
            }
          }
        }

@@ -41,6 +41,9 @@ missingData = function(station_id,detectors,startTime,endTime,percentile){
     query = freewayQuery(dets,startTime,endTime)
     rawRequest = dbGetQuery(con,query)
     if (nrow(rawRequest)>0){
+      query = publicQuery(dets,startTime,endTime)
+    }
+    if (nrow(rawRequest)>0){
       rawLane = join(rawRequest,detectors,by="detectorid")
       for (i in 1:length(lanes)){
         lane = lanes[i]
@@ -91,7 +94,7 @@ timeRange = timeSequence("2015-01-01","2015-07-31",by="day")
 
 stationList = list()
 loopStart = Sys.time()
-for (i in 18:length(stationVec)){
+for (i in 30:length(stationVec)){
   sid = stationVec[i]
   timeList = list()
   for (j in 1:length(timeRange)){
