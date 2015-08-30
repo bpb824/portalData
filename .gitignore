@@ -1,3 +1,4 @@
 *.rds
 db_credentials.json
 *.Rhistory
+*.RData
