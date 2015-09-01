@@ -40,8 +40,11 @@ missingData = function(station_id,detectors,startTime,endTime,percentile){
   if(length(dets)>0){
     query = freewayQuery(dets,startTime,endTime)
     rawRequest = dbGetQuery(con,query)
-    if (nrow(rawRequest)>0){
-      query = publicQuery(dets,startTime,endTime)
+    if (nrow(rawRequest)==0){
+      if(month(startTime)<=6){
+        query = publicQuery(dets,startTime,endTime)
+        rawRequest = dbGetQuery(con,query)
+      }
     }
     if (nrow(rawRequest)>0){
       rawLane = join(rawRequest,detectors,by="detectorid")
@@ -92,9 +95,11 @@ stationVec = sort(unique(currentStations$stationid))
 
 timeRange = timeSequence("2015-01-01","2015-07-31",by="day")
 
-stationList = list()
+#stationList = list()
+stationList=readRDS("_data/freeway/dataOutages/stationList.rds")
 loopStart = Sys.time()
-for (i in 30:length(stationVec)){
+
+for (i in (length(stationList)+1):length(stationVec)){
   sid = stationVec[i]
   timeList = list()
   for (j in 1:length(timeRange)){
@@ -106,9 +111,10 @@ for (i in 30:length(stationVec)){
   totalTime = as.numeric(difftime(Sys.time(),loopStart,units ="mins"))
   print(paste0("----Finished station ", i, " of ", length(stationVec),", ",totalTime," minutes so far"))
   stationList[[as.character(sid)]]=timeList
+  saveRDS(stationList,"_data/freeway/dataOutages/stationList.rds")
 }
 
-saveRDS(stationList,"_data/freeway/dataOutages/stationList.rds")
+
 
 
 # Mapping -----------------------------------------------------------------

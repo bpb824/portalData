@@ -1,4 +1,4 @@
-# Initialization ----------------------------------------------------------
+big# Initialization ----------------------------------------------------------
 
 #Load neccesary libraries
 require(RPostgreSQL)
@@ -164,13 +164,14 @@ dev.off()
 #axis(1,at=timeTicks,labels = timeLabs)
 
 # Issue 9: I-5 SB @ Carman, Missing data ----------------------------------
-stas =3114
+stas =c(3114,3197)
 subStations = subset(stations,stations$stationid %in% stas)
 dets = detectors$detectorid[detectors$stationid %in% stas ]
 subDetectors = subset(detectors,detectors$detectorid %in% dets)
 startDate = "2015-05-01"
 endDate = "2015-05-31"
 raw = dbGetQuery(con,freewayQuery(dets,startDate,endDate))
+raw = dbGetQuery(con,publicQuery(dets,startDate,endDate))
 #Query returns zero rows
 
 # Issue 10: I-5 SB @ Broadway, zero ramp volume during peak hours ---------
@@ -181,7 +182,7 @@ subDetectors = subset(detectors,detectors$detectorid %in% dets)
 startDate = "2015-05-01"
 endDate = "2015-05-31"
 raw = dbGetQuery(con,freewayQuery(dets,startDate,endDate))
-#Data comes back fine. 
+#Data comes back fine.
 
 # Issue 11: US-26 @ Bethany Rd: Missing Lane 3 data -----------------------
 stas = c(1136,5136)
@@ -285,7 +286,7 @@ monthList = list()
 
 for (i in 1:length(monthRange)){
   month = substr(as.character(monthRange[i]),1,7)
-  rawRequest = dbGetQuery(con,publicQuery(dets,month)) 
+  rawRequest = dbGetQuery(con,publicQuery(dets,month))
   dets = unique(rawRequest$detectorid)
   detList=list()
   for (j in 1:length(dets)){
@@ -366,7 +367,7 @@ stas= c(1084,5084)
 subStations = subset(stations,stations$stationid %in% stas)
 dets = detectors$detectorid[detectors$stationid %in% stas ]
 subDetectors = subset(detectors,detectors$detectorid %in% dets)
-rawRequest = dbGetQuery(con,freewayQuery(dets = dets,startTime = "2015-06-01",endTime = "2015-08-07")) 
+rawRequest = dbGetQuery(con,freewayQuery(dets = dets,startTime = "2015-06-01",endTime = "2015-08-07"))
 clean = filter(rawRequest)
 joined = join(clean,detectors,by ="detectorid")
 joined$period = cut(joined$starttime, breaks = "hour")
