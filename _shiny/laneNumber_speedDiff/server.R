@@ -4,11 +4,6 @@ library(knitr)
 library(stats)
 
 shinyServer(function(input, output, session) {
-  img.width <- 800
-  img.height <- 400
-  options(RCHART_HEIGHT = img.height, RCHART_WIDTH = img.width)
-  opts_chunk$set(fig.width=6, fig.height=4)
-  
   laneCheck = readRDS("laneNumberCheck.rds")
   laneCheck$flag=FALSE
   laneCheck$flag[laneCheck$pDiff_10 <0]=TRUE
@@ -33,17 +28,16 @@ shinyServer(function(input, output, session) {
     }
   }
   
-  h <- laneFrame %>% ggvis(x = ~pDiff_10,fill= ~out) %>% group_by(out) %>%
-    layer_histograms(width=input_slider(min=1,max=10,step=1,value=5,label="Bin Width (mph)")) %>%
-    scale_nominal("fill", label = "Outlier Status",
-                  domain = c("OK", "Minor", "Major"),
-                  range = c("green", "yellow", "red")) %>%
-    set_options(width = img.width, height = img.height) %>% 
-    add_tooltip(tooltipFunc(laneFrame$stationid, laneFrame$pDiff_10,laneFrame$out), 'hover') %>%
-    add_axis("x", title = "5th Percentile Difference in Speed Between Lanes 1 and 2 (mph)")%>%
-    add_axis("y", title = "Frequency")%>%
-    bind_shiny("ggvis", "ggvis_ui")
-    
-  
+  h = reactive({
+    laneFrame %>% ggvis(x = ~pDiff_10,fill= ~out) %>% group_by(out) %>%
+      layer_histograms(width=input$bin) %>%
+      scale_nominal("fill", label = "Outlier Status",
+                    domain = c("OK", "Minor", "Major"),
+                    range = c("green", "yellow", "red")) %>%
+      add_tooltip(tooltipFunc(laneFrame$stationid, laneFrame$pDiff_10,laneFrame$out), 'hover') %>%
+      add_axis("x", title = "5th Percentile Difference in Speed Between Lanes 1 and 2 (mph)")%>%
+      add_axis("y", title = "Frequency") %>% set_options(height = 300, width = "100%")
+  }) 
+  h %>% bind_shiny("ggvis", "ggvis_ui")
 })
 

@@ -1,4 +1,4 @@
-big# Initialization ----------------------------------------------------------
+# Initialization ----------------------------------------------------------
 
 #Load neccesary libraries
 require(RPostgreSQL)
@@ -90,9 +90,9 @@ dev.off()
 
 # Issue 6: I-205 SB @ OR-224/82nd: Missing Data -----------------------------------------------------------------
 stas = 1099
-subStations = subset(stations,stations$stationid %in% stas)
 dets = detectors$detectorid[detectors$stationid %in% stas ]
 subDetectors = subset(detectors,detectors$detectorid %in% dets)
+head(subDetectors)
 startDate = "2015-05-01"
 endDate = "2015-05-31"
 raw = dbGetQuery(con,freewayQuery(dets,startDate,endDate))

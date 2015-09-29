@@ -24,25 +24,25 @@ shinyApp(
       )
     )
   ),
-  
+
   server = function(input,output,session){
-    
+
     hplot = reactive({
       hourSelect = input$hour
       binSelect = input$bin
-      
+
       sub = subset(blue,blue$hour==hourSelect)
-      
+
       percentBins = quantile(sub$tt_min,probs = seq(0,1.0,0.05))
       binNums = data.frame(matrix(nrow=length(percentBins),ncol=2))
       colnames(binNums)=c("name","num")
       binNums$name[1:20]= paste0(names(percentBins)[1:20],"-",names(percentBins)[2:21])
       binNums$name[21]= "100%"
       binNums$num=as.numeric(rownames(binNums))
-      
+
       for (i in 1:nrow(sub)){
         obs = sub$tt_min[i]
-        
+
         if(obs==max(percentBins[length(percentBins)])){
           binNames = "95%-100%"
         }else if(obs ==min(percentBins[1])){
@@ -53,31 +53,31 @@ shinyApp(
           upper = names(percentBins[percentBins == min(percentBins[obs <percentBins])])
           binNames = paste0(lower,"-",upper)
         }
-        
+
         sub$pBin[i]= binNames
         sub$pBinNum[i] = binNums$num[binNums$name == binNames]
       }
-      
+
       sub$pBin=factor(sub$pBin)
-      
+
       tFunk = function(df){
         paste0("Percentile: ",binNums$name[df$pBinNum])
       }
-      
+
       colRamp = colorRampPalette(colors=c("white","red"))
-      
+
       h <- sub %>% ggvis(x = ~tt_min, fill=~pBinNum) %>%
         scale_numeric("fill",label="Percentile Bin", domain=c(1,20),range =colRamp(20)[c(1,20)])%>% group_by(pBinNum)  %>%
         layer_histograms(width=binSelect) %>%
         add_axis("x", title = "Travel Time (minutes)")%>%
         add_axis("y", title = "Frequency") %>% add_tooltip(tFunk)
-      
+
       return(h)
-      
+
     })
-    
+
     hplot %>% bind_shiny("ggvis", "ggvis_ui")
-    
+
   }
 )
 
@@ -98,7 +98,35 @@ tt_filter= function(data,dist){
   minFilter = floor((dist/(35+15))*3600)
   upper = mean(data$traveltime)+1.65*sd(data$traveltime)
   data = subset(data,data$traveltime >=minFilter & data$traveltime <=maxFilter & data$traveltime <= upper)
-  
+
 }
 
+require(dplyr)
+setwd("~/_ODOT_Portal/investigations")
+####Connect to Portal db
+####Make sure you VPN into cecs network
+db_cred = fromJSON(file="/Users/bblanc/OneDrive/_ODOT/_Portal/investigations/db_credentials.json")
+con <- dbConnect(dbDriver("PostgreSQL"), host=db_cred$db_credentials$db_host, port= 5432, user=db_cred$db_credentials$db_user, password = db_cred$db_credentials$db_pass, dbname=db_cred$db_credentials$db_name)
+
+db = src_postgres(dbname = db_cred$db_credentials$db_name,
+                  host = db_cred$db_credentials$db_host,
+                  port = 5432,
+                  user = db_cred$db_credentials$db_user,
+                  password = db_cred$db_credentials$db_pass,
+                  options = "-c search_path=odot")
+
+tbls = src_tbls(db)
+
+ttseg_tbls = tbls[grep("ttseginventory",tbls)]
+ttseg_tblRef = data.frame(matrix(nrow=length(ttseg_tbls),ncol=2))
+colnames(ttseg_tblRef)=c("tbl_name","date")
+ttseg_tblRef$tbl_name=ttseg_tbls
+ttseg_tblRef$date = as.Date(paste0(substr(ttseg_tblRef$tbl_name,16,19),"-",
+                                   substr(ttseg_tblRef$tbl_name,20,21),"-",
+                                   substr(ttseg_tblRef$tbl_name,22,23)))
+
+trav_tbls = tbls[grep("ttdcutraversals",tbls)]
+
+test = tbl(db,"ttseginventory_20150615")
+testdf = data_frame(tbl)
 

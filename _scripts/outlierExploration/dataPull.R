@@ -5,6 +5,7 @@ require(plyr)
 require(ggplot2)
 require(lubridate)
 require(rjson)
+require(portalr)
 
 setwd("/Users/bblanc/OneDrive/_ODOT/_Portal/investigations")
 

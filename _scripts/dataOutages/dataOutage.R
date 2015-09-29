@@ -1,6 +1,6 @@
 # Meta --------------------------------------------------------------------
 # @file missingDataFinder.R
-# @description This script finds missing data within the PORTAL database. 
+# @description This script finds missing data within the PORTAL database.
 # @author Bryan Blanc <bryanpblanc@gmail.com>
 
 # Initialization ----------------------------------------------------------
@@ -36,6 +36,7 @@ source("_functions/aggregation.R")
 missingData = function(station_id,detectors,startTime,endTime,percentile){
   dets = detectors$detectorid[detectors$stationid %in% station_id]
   lanes = sort(unique(detectors$lanenumber[detectors$detectorid %in% dets]))
+  lanes = lanes[lanes!=0]
   laneList = list()
   if(length(dets)>0){
     query = freewayQuery(dets,startTime,endTime)
@@ -125,7 +126,7 @@ colnames(mapFrame)=c("station_id","long","lat","htmlLink","numOutages")
 for(i in 1:length(stationList)){
   sid = as.numeric(names(stationList[i]))
   mapFrame$station_id[i]=sid
-  
+
   if(sid <5000){
     mapFrame$lat[i] = staLocs$Y[staLocs$stationid==sid]
     mapFrame$long[i] = staLocs$X[staLocs$stationid==sid]
@@ -133,7 +134,7 @@ for(i in 1:length(stationList)){
     mapFrame$lat[i] = staLocs$Y[staLocs$stationid==sid-4000]
     mapFrame$long[i] = staLocs$X[staLocs$stationid==sid-4000]
   }
-  
+
   sta = stationList[[i]]
   numLanes = length(unique(detectors$lanenumber[detectors$stationid==sid]))
   if(numLanes >0){
@@ -154,9 +155,9 @@ for(i in 1:length(stationList)){
     melted$day = as.Date(melted$day)
     flagged = subset(melted,melted$value!=0)
     mapFrame$numOutages[i]=nrow(flagged)
-    
-    
-    
+
+
+
     portalLink=paste0("http://portal.its.pdx.edu/Portal/index.php/stations/view/id/",sid,"/")
     if(sid>=5000){
       mapFrame$htmlLink[i] = paste0("<div align='center'><b>Ramp<b><br><br/><a href='",portalLink,"' target=_blank>",stations$locationtext[stations$stationid==sid][1],"</a></div>")
@@ -175,9 +176,9 @@ pal <- colorNumeric(
   domain = c(0,100)
 )
 
-map= leaflet(mapFrame) %>% addProviderTiles("CartoDB.DarkMatter",options = providerTileOptions(noWrap = TRUE)) %>% 
+map= leaflet(mapFrame) %>% addProviderTiles("CartoDB.DarkMatter",options = providerTileOptions(noWrap = TRUE)) %>%
   setView(-122.6662589, 45.5317385, zoom = 10) %>% addCircleMarkers(lng=~long,lat=~lat,popup =~htmlLink,color =~pal(numOutages))
-  
+
 
 
 # Plotting ----------------------------------------------------------------
@@ -209,7 +210,7 @@ for(i in 1:length(stationList)){
     flagged$id = rownames(flagged)
     plotList[[as.character(sid)]]=flagged
   }
-  
+
   #ggplot(flagged,aes(x = day, y = variable, group = value, colour=value))+geom_point()+scale_x_date()+scale_color_discrete(labels=flagKey$def)
   #flagged %>% ggvis(x=~day, y=~ variable, stroke =~value, fill =~value, key:=~id)  %>% layer_points(opacity := 0.5) %>% add_tooltip(tFunk)
 }
@@ -217,5 +218,50 @@ for(i in 1:length(stationList)){
 
 
 saveRDS(plotList,"_data/freeway/dataOutages/plotList.rds")
+
+
+# Table -------------------------------------------------------------------
+flagKey = data.frame(matrix(nrow=4,ncol=2))
+colnames(flagKey)=c("value","def")
+flagKey$value=1:4
+flagKey$def = c("Very Low Values","Only Empty Data", "Zero Rows of Data", "Detector Unavailable")
+stationList = readRDS("_data/freeway/dataOutages/stationList.rds")
+
+tabFrame = data.frame(matrix(nrow=length(stationList),ncol=6))
+colnames(tabFrame)=c("sid","location","flag1","flag2","flag3","numOutages")
+#colnames(tabFrame)=c("station_id",c("# Days w/ Very Low Values","# Days w/ Only Empty Data", "# Days w/ Zero Rows of Data"),"# Days w/ Outages (Total)")
+
+for(i in 1:length(stationList)){
+  sid = as.numeric(names(stationList[i]))
+  tabFrame$sid[i]=sid
+  tabFrame$location[i] = stations$locationtext[stations$stationid==sid][1]
+  sta = stationList[[i]]
+  numLanes = length(unique(detectors$lanenumber[detectors$stationid==sid]))
+  if (numLanes>0){
+    flag1 = 0
+    flag2 = 0
+    flag3 = 0
+    for (j in 1:length(sta)){
+      flags = unlist(sta[[j]])
+      for (k in 1:length(flags)){
+        if(flags[k]==1){
+          flag1 = flag1 +1
+        }else if(flags[k]==2){
+          flag2 = flag2 +1
+        }else if(flags[k]==3){
+          flag3 = flag3 +1
+        }
+      }
+    }
+    tabFrame$flag1[i]=flag1
+    tabFrame$flag2[i]=flag2
+    tabFrame$flag3[i]=flag3
+    tabFrame$numOutages[i]=flag1+flag2+flag3
+  }
+}
+
+tabFrame = tabFrame[complete.cases(tabFrame),]
+
+saveRDS(tabFrame,"_data/freeway/dataOutages/tabFrame.rds")
 
 

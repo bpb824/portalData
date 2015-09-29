@@ -14,7 +14,10 @@ locVec = unique(locVec)
 
 shinyUI(
   fluidPage(
-    titlePanel(title="Speed Validation Explorer"),
+    fixedRow(
+      column(8,h1("Speed Validation Explorer")),
+      column(4,imageOutput("legend", height ="10px",inline = TRUE))
+    ),
     fixedRow(column(6,
                     uiOutput("ggvis_ui_1"),ggvisOutput("ggvis_1")
                     ),
@@ -24,7 +27,7 @@ shinyUI(
     ),
     fixedRow(column(12,
                     wellPanel(selectInput("loc","Location",choices=locVec,selected=locVec[1]),
-                              sliderInput("agg","Aggregation (minutes)",min=1,max=5,step=1,value=3))     
+                              sliderInput("agg","Aggregation (minutes)",min=1,max=5,step=1,value=2))     
     )
     )
     

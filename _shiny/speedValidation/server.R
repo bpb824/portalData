@@ -17,6 +17,11 @@ dataLabs$label = c("Observed","Same-time PORTAL Data","10-Week Historical Averag
 
 shinyServer(function(input,output,session){
   
+  output$legend <- renderImage({
+    # Return a list containing the filename
+    list(src = "legend.png")
+  }, deleteFile = FALSE)
+  
   extract = function(index,agg){
     speed = speeds[[index]]
     data = speed$melted
@@ -50,7 +55,7 @@ shinyServer(function(input,output,session){
     dmn = c(min(ranges),max(ranges))
     
     p = agged %>% ggvis(x=~time,y=~value, fill=~label,stroke=~label) %>% group_by(variable) %>% layer_smooths(se=TRUE) %>%
-      layer_points() %>% add_axis("y",title="Speed (mph)")  %>% add_legend(scales = c("stroke","fill"),title="Data Source") %>%
+      layer_points() %>% add_axis("y",title="Speed (mph)")  %>% hide_legend(scales = c("stroke","fill")) %>%
       set_options(height = 400, width = "100%") %>% scale_numeric("y",domain= dmn, nice = TRUE)%>% add_title(title = lane, x_lab = "Time")
       #%>% #add_tooltip(tFunk)
     
@@ -69,7 +74,7 @@ shinyServer(function(input,output,session){
     dmn = c(min(ranges),max(ranges))
     
     p = agged %>% ggvis(x=~time,y=~value, fill=~label,stroke=~label) %>% group_by(variable) %>% layer_smooths(se=TRUE) %>%
-      layer_points() %>% add_axis("y",title="Speed (mph)") %>% add_legend(scales = c("stroke","fill"),title="Data Source") %>%
+      layer_points() %>% add_axis("y",title="Speed (mph)") %>% hide_legend(scales = c("stroke","fill")) %>%
       set_options(height = 400, width = "100%") %>% scale_numeric("y",domain= dmn, nice = TRUE)%>%add_title(title = lane, x_lab = "Time")
     
     return(p)
