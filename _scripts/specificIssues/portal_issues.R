@@ -8,6 +8,7 @@ require(plyr)
 require(ggplot2)
 require(lubridate)
 require(rjson)
+require(portalr)
 
 #Set working directory
 setwd("/Users/bblanc/OneDrive/_ODOT/_Portal/investigations/")
@@ -114,50 +115,17 @@ subStations = subset(stations,stations$stationid %in% stas)
 dets = detectors$detectorid[detectors$stationid %in% stas ]
 subDetectors = subset(detectors,detectors$detectorid %in% dets)
 startDate = "2014-05-01"
-endDate = "2015-06-30"
+endDate = "2015-09-30"
 #query = freewayQuery(dets,startTime = startDate,endTime=endDate)
 #raw = dbGetQuery(con,query)
 
-monthRange = timeSequence("2014-01-01","2015-06-01",by="month")
-stark = list()
-for (i in 1:length(monthRange)){
-  month = as.character(monthRange[i])
-  query = publicQuery(dets,month)
-  raw = dbGetQuery(con,query)
-  stark[[i]]=raw
-  print(i)
-}
+raw = freewayData(con,dets,startDate,endDate)
+raw$starttime = as.POSIXct(raw$starttime,origin = "1970-01-01")
+agg = aggTime(raw,c("detectorid"),"day")
 
-rampDets = detectors$detectorid[detectors$stationid>=5000]
-
-starkAgg = list()
-for (i in 1:length(stark)){
-  mf = stark[[i]]
-  mf = filter(mf)
-  mf$period = cut(mf$starttime,breaks="week")
-  mf$lanenumber[mf$detectorid %in% rampDets]="on-ramp"
-  for(j in 1:nrow(mf)){
-    if(!(mf$detectorid[i] %in% rampDets)){
-      mf$lanenumber[i]=detectors$lanenumber[detectors$detectorid==mf$detectorid[i]]
-    }
-  }
-  agg = ddply(mf,c("lanenumber","period"),function(X) data.frame(volume=sum(X$volume), occupancy = mean(X$occupancy), speed = weighted.mean(X$speed,X$volume)))
-  agg$period = as.POSIXct(agg$period)
-  agg$lanenumber = factor(agg$lanenumber)
-  starkAgg[[i]]=agg
-}
-
-bigStark = starkAgg[[1]]
-
-for (i in 2:length(starkAgg)){
-  bigStark=rbind(bigStark,starkAgg[[i]])
-}
-
-saveRDS(stark,"6/starkRaw.rds")
-
-theme_set(theme_grey(base_size = 20))
-png("6/weekRampVolumes.png", width = 900,height = 400)
-ggplot(bigStark,aes(x=period,y=volume,group = lanenumber, colour = lanenumber))+geom_line()+scale_x_datetime()+xlab("")+ylab("Vehicles Per Week")+ggtitle("Weekly Volumes on I-205 SB @ Stark/Washington")+scale_colour_discrete(name="Lane Number")
+theme_set(theme_grey(base_size = 25))
+png("_results/img/specificIssues/6/dayRampVolumes.png", width = 1200,height = 1000)
+ggplot(agg,aes(x=period,y=volume))+geom_point(size = 5, alpha = 0.7)+scale_x_datetime()+xlab("")+ylab("Vehicles Per Day")+ggtitle("Daily Volumes on I-205 SB @ Stark/Washington")
 dev.off()
 
 #boxplot(volume~hour,data = agg[as.character(agg$lanenumber)=="on-ramp",],main = "On-Ramp Volumes over January 2014",ylab = "Volume (veh/hr)",xaxt = "n")
