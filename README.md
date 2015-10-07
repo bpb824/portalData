@@ -24,4 +24,3 @@ Within each folder in the file directory, contents are broken up by sub-project.
 *  **specificIssues**: This sub-project investigated specific documented issues within the PORTAL freeway database system. More information about this sub-project is available here: http://bigtransportdata.com/portal?section=specific-issues
 *  **speedValidation**: This sub-project investigated several stations where speeds were suspect using  comparison of PORTAL data with ground truth data collected using a speed gun. More information about this project is available here: http://bigtransportdata.com/portal?section=speed-validation
 *  **valueFlagging**: This sub-project used theoretical threshold values to detect likely erroneous measurements in the PORTAL freeway data system. More information about this project is available here: http://bigtransportdata.com/portal?section=error-value-detect
-*  
