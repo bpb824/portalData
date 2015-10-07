@@ -78,8 +78,8 @@ shinyServer(function(input, output, session) {
             if(sum(rows>0)){
               sub = sData[rows,]
               if(quant == "volume"){
-                temp = ddply(sub,"lanenumber",summarise,volume = sum(volume))
-                q = mean(temp$volume, na.rm = TRUE)
+                temp = ddply(sub,"lanenumber",summarise,volume = mean(volume))
+                q = sum(temp$volume, na.rm = TRUE)
               }else if (quant =="occupancy"){
                 q = mean(sub$occupancy, na.rm = TRUE)
               }else if (quant == "speed"){

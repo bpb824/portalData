@@ -7,7 +7,6 @@ require(ggplot2)
 require(lubridate)
 require(reshape2)
 require(rjson)
-require(portalr)
 
 setwd("/Users/bblanc/OneDrive/_ODOT/_Portal/investigations/")
 
@@ -16,7 +15,7 @@ setwd("/Users/bblanc/OneDrive/_ODOT/_Portal/investigations/")
 db_cred = fromJSON(file="db_credentials.json")
 con <- dbConnect(dbDriver("PostgreSQL"), host=db_cred$db_credentials$db_host, port= 5432, user=db_cred$db_credentials$db_user, password = db_cred$db_credentials$db_pass, dbname=db_cred$db_credentials$db_name)
 
-####Relational Tables
+#Metadata Tables
 stations= dbGetQuery(con,"SELECT * FROM public.stations")
 detectors = dbGetQuery(con,"SELECT * FROM public.detectors")
 
@@ -157,7 +156,7 @@ for(i in 1:length(speedList)){
   }else{
     agg$time = as.POSIXct(strptime(paste0("2015-09-03 ",agg$time),format= "%Y-%m-%d %H:%M:%S"))
   }
-  
+
 
   speedList[[i]]$hist = agg
 }
