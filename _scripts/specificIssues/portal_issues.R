@@ -359,25 +359,20 @@ startDate = "2015-04-01"
 endDate = "2015-07-31"
 raw = freewayData(con,dets,startDate,endDate)
 clean = filterFreeway(raw)
-joined= join(raw,detectors,by="detectorid")
-agg = aggTime(joined,c("lanenumber"),"hour",acrossDays=FALSE)
 
-raw$period = cut(raw$starttime,breaks = "1 hour")
 raw$dow = weekdays(raw$starttime,abbreviate = TRUE)
 mf = subset(raw,raw$dow != "Sat" & raw$dow != "Sun")
-agg = ddply(mf,c("lanenumber","period"),function(X) data.frame(volume=sum(X$volume), occupancy = mean(X$occupancy), speed = weighted.mean(X$speed,X$volume)))
-agg$tod = strftime(agg$period,format="%H:%M")
-#agg_tod = ddply(agg,c("lanenumber","tod"),summarise, volume = mean(volume),occupancy = mean(occupancy),speed=mean(speed))
-agg$time=as.POSIXct(agg$period)
-agg$lanenumber=factor(agg$lanenumber)
-agg$tod=hour(agg$time)
-timeLabs = c("3 AM","6 AM","9 AM","12 PM","3 PM","6 PM","9 PM")
-timeTicks = seq(3,21,3)
+joined= join(mf,detectors,by="detectorid")
+agg = aggTime(joined,c("lanenumber"),"hour",acrossDays=FALSE)
+agg$lanenumber = factor(agg$lanenumber)
 theme_set(theme_bw(base_size = 25))
-plt = ggplot(agg,aes(x=tod,y=volume,group=lanenumber,colour=lanenumber))+geom_point(alpha=0.3)+geom_smooth()+
-  xlab("Hour of Day")+ylab("Volume (vph)")+scale_x_continuous(breaks = timeTicks,labels = timeLabs)+scale_y_continuous(limits=c(0,3000))+
-  ggtitle("Weekday volumes plotted by hour of day and lane for I-84 WB W of Grand")+scale_colour_discrete(name="Lane Number")
-png("20/volumes.png",width=1200,height=600)
+agg$hour = hour(agg$period)
+agg$time = strptime(as.character(agg$hour),format = "%H")
+plt = ggplot(agg,aes(x=time,y=volume,group=lanenumber,colour=lanenumber))+geom_point(alpha=0.3)+
+  geom_smooth()+xlab("Hour of Day")+ylab("Volume (vph)")+scale_y_continuous(limits=c(0,3000))+
+  ggtitle("Weekday volumes plotted by hour of day and lane for \n I-84 WB W of Grand (April-July 2015)")+scale_colour_discrete(name="Lane Number")+
+  scale_x_datetime(labels=date_format("%I:%M %p", tz=Sys.timezone()))
+png("_results/img/specificIssues/20/volumes.png",width=1200,height=600)
 print(plt)
 dev.off()
 
