@@ -3,7 +3,7 @@ Bryan's repo for storing exploration and analysis tools and results used for POR
 
 Tools are written in R, outputs in various forms such as: images, documents, shiny apps, etc. 
 
-Requires database credentials to use. The file "db_credentials-template.json" should be appropriately edited (with database credentials) and renamed to "db_credentials.json" in order to be loaded by the scripts. PORTAL database credentials can be obtained from [Kristen Tufte](mailto:tufte@pdx.edu)
+Requires database credentials to use. The file "db_credentials-template.json" should be appropriately edited (with database credentials) and renamed to "db_credentials.json" in order to be loaded by the scripts. PORTAL database credentials can be obtained from [Kristin Tufte](mailto:tufte@pdx.edu)
 
 .rds files not included in repository as some are very large. These are data inputs and outputs for scripts. A zip folder of this material is stored on an ODOT Region 1 planning unit folder. Contact [Chi Mai](mailto:Chi.Mai@odot.state.or.us) for access. 
 
